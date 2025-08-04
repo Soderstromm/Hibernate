@@ -13,8 +13,12 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity
+@EnableMethodSecurity(
+        prePostEnabled = true,
+        securedEnabled = true
+)
 public class SecurityConfig {
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -30,31 +34,24 @@ public class SecurityConfig {
 
     @Bean
     public UserDetailsService userDetailsService() {
-        UserDetails user1 = User.withDefaultPasswordEncoder()
+        UserDetails reader = User.withDefaultPasswordEncoder()
                 .username("reader")
                 .password("pass")
                 .roles("READ")
                 .build();
 
-        UserDetails user2 = User.withDefaultPasswordEncoder()
+        UserDetails writer = User.withDefaultPasswordEncoder()
                 .username("writer")
                 .password("pass")
                 .roles("WRITE")
                 .build();
 
-        UserDetails user3 = User.withDefaultPasswordEncoder()
+        UserDetails deleter = User.withDefaultPasswordEncoder()
                 .username("deleter")
                 .password("pass")
                 .roles("DELETE")
                 .build();
 
-        UserDetails user4 = User.withDefaultPasswordEncoder()
-                .username("admin")
-                .password("pass")
-                .roles("READ", "WRITE", "DELETE")
-                .build();
-
-        return new InMemoryUserDetailsManager(user1, user2, user3, user4);
+        return new InMemoryUserDetailsManager(reader, writer, deleter);
     }
-
 }
