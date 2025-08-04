@@ -8,15 +8,14 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity(
-        prePostEnabled = true,
-        securedEnabled = true
-)
+@EnableMethodSecurity(prePostEnabled = true, securedEnabled = true)
 public class SecurityConfig {
 
     @Bean
@@ -31,27 +30,37 @@ public class SecurityConfig {
 
         return http.build();
     }
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
     @Bean
-    public UserDetailsService userDetailsService() {
-        UserDetails reader = User.withDefaultPasswordEncoder()
+    public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
+        UserDetails reader = User.builder()
                 .username("reader")
-                .password("pass")
+                .password(passwordEncoder.encode("pass"))
                 .roles("READ")
                 .build();
 
-        UserDetails writer = User.withDefaultPasswordEncoder()
+        UserDetails writer = User.builder()
                 .username("writer")
-                .password("pass")
+                .password(passwordEncoder.encode("pass"))
                 .roles("WRITE")
                 .build();
 
-        UserDetails deleter = User.withDefaultPasswordEncoder()
+        UserDetails deleter = User.builder()
                 .username("deleter")
-                .password("pass")
+                .password(passwordEncoder.encode("pass"))
                 .roles("DELETE")
                 .build();
 
-        return new InMemoryUserDetailsManager(reader, writer, deleter);
+        UserDetails admin = User.builder()
+                .username("admin")
+                .password(passwordEncoder.encode("pass"))
+                .roles("READ", "WRITE", "DELETE")
+                .build();
+
+        return new InMemoryUserDetailsManager(reader, writer, deleter, admin);
     }
 }
